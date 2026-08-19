@@ -71,6 +71,20 @@ export const GetDashboardResponse = zod.object({
 
 
 /**
+ * @summary List stores available to the signed-in operator
+ */
+export const ListStoresResponseItem = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "code": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "active": zod.boolean()
+})
+export const ListStoresResponse = zod.array(ListStoresResponseItem)
+
+
+/**
  * @summary List and filter repair tickets
  */
 export const ListTicketsQueryParams = zod.object({

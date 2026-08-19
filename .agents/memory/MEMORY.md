@@ -1,1 +1,2 @@
 - [WhatsApp notifications](whatsapp-notifications.md) — model delivery state and retry separately from ticket status so provider integration can be added later.
+- [Multi-store isolation](multi-store.md) — active store is sent with every API request and scopes operational data by store.

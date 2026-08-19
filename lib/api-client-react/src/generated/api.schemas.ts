@@ -48,6 +48,15 @@ export interface Dashboard {
   statusCounts: DashboardStatusCounts;
 }
 
+export interface Store {
+  id: string;
+  name: string;
+  code: string;
+  address: string;
+  phone: string;
+  active: boolean;
+}
+
 export interface Customer {
   id: string;
   name: string;

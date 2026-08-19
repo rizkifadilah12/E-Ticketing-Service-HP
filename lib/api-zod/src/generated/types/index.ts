@@ -18,6 +18,7 @@ export * from './paymentInput';
 export * from './publicTracking';
 export * from './statusHistory';
 export * from './statusUpdate';
+export * from './store';
 export * from './ticket';
 export * from './ticketDetail';
 export * from './ticketInput';
