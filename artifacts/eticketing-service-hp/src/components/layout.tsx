@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Activity, ChevronRight, ClipboardList, Command, LayoutDashboard, Menu, Search, Settings2, Users, X, Zap } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Activity, Building2, ChevronRight, ClipboardList, Command, LayoutDashboard, Menu, Search, Settings2, Users, X, Zap } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Command center', icon: LayoutDashboard },
@@ -11,6 +12,18 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const [stores, setStores] = useState<Array<{ id: string; name: string; code: string; address: string }>>([]);
+  const [activeStoreId, setActiveStoreId] = useState(() => window.localStorage.getItem('active-store-id') ?? 'store-central');
+  useEffect(() => {
+    fetch('/api/stores').then((response) => response.json()).then(setStores).catch(() => setStores([]));
+  }, []);
+  const activeStore = stores.find((store) => store.id === activeStoreId);
+  const switchStore = (storeId: string) => {
+    window.localStorage.setItem('active-store-id', storeId);
+    setActiveStoreId(storeId);
+    queryClient.invalidateQueries();
+  };
   const pageTitle = location === '/' ? 'Command center' : location.startsWith('/tickets') ? 'Repair tickets' : location.startsWith('/customers') ? 'Customers' : 'Public tracking';
 
   return (
@@ -23,6 +36,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span><span className="block text-sm font-extrabold tracking-tight">e-ticketing</span><span className="block font-mono text-[9px] uppercase tracking-[.14em] text-sidebar-foreground/55">service hp</span></span>
             </Link>
             <button className="btn-ghost text-sidebar-foreground/60 md:hidden" onClick={() => setOpen(false)} data-testid="button-close-sidebar"><X className="size-4" /></button>
+          </div>
+          <div className="mt-2 rounded-xl border border-sidebar-border bg-sidebar-accent/55 p-2.5">
+            <div className="mb-1 flex items-center gap-2 px-1 text-[9px] font-bold uppercase tracking-[.14em] text-sidebar-foreground/40"><Building2 className="size-3" /> Active store</div>
+            <select value={activeStoreId} onChange={(event) => switchStore(event.target.value)} className="w-full rounded-lg border border-sidebar-border bg-sidebar text-xs font-bold text-sidebar-foreground outline-none">
+              {stores.length === 0 && <option value="store-central">Service Station Central</option>}
+              {stores.map((store) => <option key={store.id} value={store.id}>{store.name}</option>)}
+            </select>
+            <p className="mt-1 truncate px-1 text-[10px] text-sidebar-foreground/45">{activeStore?.address ?? 'Store workspace'}</p>
           </div>
 
           <div className="mt-7 px-2"><p className="font-mono text-[9px] uppercase tracking-[.14em] text-sidebar-foreground/40">Operations</p></div>

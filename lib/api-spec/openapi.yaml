@@ -14,6 +14,7 @@ tags:
   - name: tickets
   - name: customers
   - name: public
+  - name: stores
 paths:
   /healthz:
     get:
@@ -40,6 +41,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Dashboard"
+  /stores:
+    get:
+      operationId: listStores
+      tags: [stores]
+      summary: List stores available to the signed-in operator
+      responses:
+        "200":
+          description: Store list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Store" }
   /tickets:
     get:
       operationId: listTickets
@@ -219,6 +233,16 @@ components:
         recentTickets: { type: array, items: { $ref: "#/components/schemas/Ticket" } }
         upcomingDeadlines: { type: array, items: { $ref: "#/components/schemas/Ticket" } }
         statusCounts: { type: object, additionalProperties: { type: number } }
+    Store:
+      type: object
+      required: [id, name, code, address, phone, active]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        code: { type: string }
+        address: { type: string }
+        phone: { type: string }
+        active: { type: boolean }
     Customer:
       type: object
       required: [id, name, whatsapp, totalTickets, activeTickets]
