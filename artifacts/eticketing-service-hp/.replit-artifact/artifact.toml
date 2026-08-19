@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "E-Ticketing Service HP"
+description = "A complete mobile phone repair operations app for intake, ticket lifecycle management, technician work, customer communication, payments, public tracking, and service receipts."
+version = "1.0.0"
+id = "artifacts/eticketing-service-hp"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24463
+
+[services.development]
+run = "pnpm --filter @workspace/eticketing-service-hp run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/eticketing-service-hp", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/eticketing-service-hp/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24463"
+BASE_PATH = "/"

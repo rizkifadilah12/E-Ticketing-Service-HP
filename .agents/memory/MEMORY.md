@@ -1,0 +1,1 @@
+- [WhatsApp notifications](whatsapp-notifications.md) — model delivery state and retry separately from ticket status so provider integration can be added later.

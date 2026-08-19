@@ -1,6 +1,6 @@
-# [Project name]
+# E-Ticketing Service HP
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Web application untuk mengelola siklus perbaikan ponsel dari intake sampai pickup dengan tracking publik dan notifikasi pelanggan.
 
 ## Run & Operate
 
@@ -22,15 +22,23 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/eticketing-service-hp` — aplikasi web utama dan seluruh halaman operasional.
+- `artifacts/api-server/src/routes/repair.ts` — endpoint dashboard, ticket, customer, payment, notification, dan public tracking.
+- `artifacts/api-server/src/routes/repair-store.ts` — contoh data domain dan state repair lifecycle.
+- `lib/api-spec/openapi.yaml` — kontrak API sebagai sumber kebenaran untuk generated hooks.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Frontend memakai React + Vite di root preview agar customer tracking dan operasi staff hidup dalam satu aplikasi.
+- API contract ditulis OpenAPI lalu di-generate menjadi React Query hooks dan Zod schemas.
+- Status ticket memakai enum string dari PRD (`DEVICE_RECEIVED` sampai `PICKED_UP`) dan setiap perpindahan menambah history audit.
+- WhatsApp dimodelkan sebagai notification queue dengan status delivery dan retry endpoint; provider WhatsApp dapat dipasang tanpa mengubah lifecycle ticket.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Dashboard command center untuk intake, repair queue, deadline, delayed tickets, dan ready pickup.
+- Ticket list/detail, create intake, assignment teknisi, diagnosis, estimasi biaya, approval/status updates, payments, notification retry, dan printable receipt.
+- Customer directory, public tracking tanpa login, customer masking, status timeline, serta delay/pickup information.
 
 ## User preferences
 

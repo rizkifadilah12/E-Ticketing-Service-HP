@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+  - name: tickets
+  - name: customers
+  - name: public
 paths:
   /healthz:
     get:
@@ -24,6 +28,174 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get operational dashboard
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /tickets:
+    get:
+      operationId: listTickets
+      tags: [tickets]
+      summary: List and filter repair tickets
+      parameters:
+        - { name: search, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: technicianId, in: query, schema: { type: string } }
+        - { name: priority, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Ticket list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Ticket" }
+    post:
+      operationId: createTicket
+      tags: [tickets]
+      summary: Create a repair ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TicketInput" }
+      responses:
+        "201":
+          description: Created ticket
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ticket" }
+  /tickets/{id}:
+    get:
+      operationId: getTicket
+      tags: [tickets]
+      summary: Get ticket detail
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Ticket detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TicketDetail" }
+        "404": { description: Ticket not found }
+    patch:
+      operationId: updateTicket
+      tags: [tickets]
+      summary: Update ticket
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TicketUpdate" }
+      responses:
+        "200":
+          description: Updated ticket
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TicketDetail" }
+  /tickets/{id}/status:
+    post:
+      operationId: updateTicketStatus
+      tags: [tickets]
+      summary: Change status and append audit history
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StatusUpdate" }
+      responses:
+        "200":
+          description: Updated ticket
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TicketDetail" }
+  /tickets/{id}/payments:
+    post:
+      operationId: recordPayment
+      tags: [tickets]
+      summary: Record a payment
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PaymentInput" }
+      responses:
+        "201":
+          description: Payment recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Payment" }
+  /tickets/{id}/notifications/{notificationId}/retry:
+    post:
+      operationId: retryNotification
+      tags: [tickets]
+      summary: Retry a failed WhatsApp notification
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: notificationId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Retried notification
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Notification" }
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers
+      responses:
+        "200":
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Customer" }
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerInput" }
+      responses:
+        "201":
+          description: Created customer
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Customer" }
+  /public/track/{ticketNumber}:
+    get:
+      operationId: getPublicTracking
+      tags: [public]
+      summary: Public ticket tracking
+      parameters:
+        - { name: ticketNumber, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Public tracking data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicTracking" }
+        "404": { description: Ticket not found }
 components:
   schemas:
     HealthStatus:
@@ -33,4 +205,163 @@ components:
           type: string
       required:
         - status
+    Dashboard:
+      type: object
+      required: [totalToday, newTickets, underRepair, waitingParts, delayed, completed, readyPickup, recentTickets, upcomingDeadlines, statusCounts]
+      properties:
+        totalToday: { type: number }
+        newTickets: { type: number }
+        underRepair: { type: number }
+        waitingParts: { type: number }
+        delayed: { type: number }
+        completed: { type: number }
+        readyPickup: { type: number }
+        recentTickets: { type: array, items: { $ref: "#/components/schemas/Ticket" } }
+        upcomingDeadlines: { type: array, items: { $ref: "#/components/schemas/Ticket" } }
+        statusCounts: { type: object, additionalProperties: { type: number } }
+    Customer:
+      type: object
+      required: [id, name, whatsapp, totalTickets, activeTickets]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        whatsapp: { type: string }
+        email: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        totalTickets: { type: number }
+        activeTickets: { type: number }
+    CustomerInput:
+      type: object
+      required: [name, whatsapp]
+      properties:
+        name: { type: string }
+        whatsapp: { type: string }
+        email: { type: string }
+        address: { type: string }
+    Ticket:
+      type: object
+      required: [id, ticketNumber, customerName, whatsapp, deviceBrand, deviceModel, complaint, status, priority, intakeDate, estimatedCompletion, technicianName, totalCost, paidAmount]
+      properties:
+        id: { type: string }
+        ticketNumber: { type: string }
+        customerName: { type: string }
+        whatsapp: { type: string }
+        deviceBrand: { type: string }
+        deviceModel: { type: string }
+        imei: { type: ["string", "null"] }
+        color: { type: ["string", "null"] }
+        complaint: { type: string }
+        status: { type: string }
+        priority: { type: string }
+        intakeDate: { type: string }
+        estimatedCompletion: { type: ["string", "null"] }
+        technicianName: { type: ["string", "null"] }
+        totalCost: { type: number }
+        paidAmount: { type: number }
+        unreadNotifications: { type: number }
+    TicketInput:
+      type: object
+      required: [customerName, whatsapp, deviceBrand, deviceModel, complaint, priority]
+      properties:
+        customerId: { type: string }
+        customerName: { type: string }
+        whatsapp: { type: string }
+        deviceBrand: { type: string }
+        deviceModel: { type: string }
+        imei: { type: string }
+        color: { type: string }
+        storage: { type: string }
+        condition: { type: string }
+        accessories: { type: array, items: { type: string } }
+        complaint: { type: string }
+        priority: { type: string }
+        estimatedCompletion: { type: string }
+        technicianId: { type: string }
+        notes: { type: string }
+    TicketUpdate:
+      type: object
+      properties:
+        technicianId: { type: string }
+        priority: { type: string }
+        estimatedCompletion: { type: string }
+        diagnosis: { type: string }
+        cause: { type: string }
+        recommendation: { type: string }
+        laborCost: { type: number }
+        partsCost: { type: number }
+        delayReason: { type: string }
+        notes: { type: string }
+    StatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }
+        note: { type: string }
+        delayReason: { type: string }
+    Payment:
+      type: object
+      required: [id, amount, method, paidAt]
+      properties:
+        id: { type: string }
+        amount: { type: number }
+        method: { type: string }
+        paidAt: { type: string }
+        receivedBy: { type: string }
+    PaymentInput:
+      type: object
+      required: [amount, method]
+      properties:
+        amount: { type: number }
+        method: { type: string }
+    Notification:
+      type: object
+      required: [id, type, recipient, status, sentAt, message]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        recipient: { type: string }
+        status: { type: string }
+        sentAt: { type: ["string", "null"] }
+        message: { type: string }
+        error: { type: ["string", "null"] }
+    StatusHistory:
+      type: object
+      required: [id, status, at, actor]
+      properties:
+        id: { type: string }
+        status: { type: string }
+        at: { type: string }
+        actor: { type: string }
+        note: { type: ["string", "null"] }
+    TicketDetail:
+      allOf:
+        - $ref: "#/components/schemas/Ticket"
+        - type: object
+          required: [condition, accessories, diagnosis, cause, recommendation, laborCost, partsCost, payments, notifications, history, outstandingBalance]
+          properties:
+            condition: { type: ["string", "null"] }
+            accessories: { type: array, items: { type: string } }
+            diagnosis: { type: ["string", "null"] }
+            cause: { type: ["string", "null"] }
+            recommendation: { type: ["string", "null"] }
+            laborCost: { type: number }
+            partsCost: { type: number }
+            payments: { type: array, items: { $ref: "#/components/schemas/Payment" } }
+            notifications: { type: array, items: { $ref: "#/components/schemas/Notification" } }
+            history: { type: array, items: { $ref: "#/components/schemas/StatusHistory" } }
+            outstandingBalance: { type: number }
+    PublicTracking:
+      type: object
+      required: [ticketNumber, customerName, deviceBrand, deviceModel, complaint, status, history, estimatedCompletion]
+      properties:
+        ticketNumber: { type: string }
+        customerName: { type: string }
+        deviceBrand: { type: string }
+        deviceModel: { type: string }
+        complaint: { type: string }
+        status: { type: string }
+        history: { type: array, items: { $ref: "#/components/schemas/StatusHistory" } }
+        estimatedCompletion: { type: ["string", "null"] }
+        delayReason: { type: ["string", "null"] }
+        pickupInfo: { type: ["string", "null"] }
 
