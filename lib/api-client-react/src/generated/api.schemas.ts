@@ -48,6 +48,15 @@ export interface Dashboard {
   statusCounts: DashboardStatusCounts;
 }
 
+export type StoreMembershipPlan = typeof StoreMembershipPlan[keyof typeof StoreMembershipPlan];
+
+
+export const StoreMembershipPlan = {
+  unpaid: 'unpaid',
+  monthly: 'monthly',
+  lifetime: 'lifetime',
+} as const;
+
 export interface Store {
   id: string;
   name: string;
@@ -55,6 +64,81 @@ export interface Store {
   address: string;
   phone: string;
   active: boolean;
+  membershipPlan: StoreMembershipPlan;
+  /** @nullable */
+  membershipExpiresAt: string | null;
+}
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export type SessionUserRole = typeof SessionUserRole[keyof typeof SessionUserRole];
+
+
+export const SessionUserRole = {
+  platform_admin: 'platform_admin',
+  store_operator: 'store_operator',
+} as const;
+
+export interface SessionUser {
+  id: string;
+  name: string;
+  email: string;
+  role: SessionUserRole;
+  stores: Store[];
+}
+
+export interface StoreOperator {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export type AdminStore = Store & {
+  operators: StoreOperator[];
+};
+
+export type CreateStoreInputMembershipPlan = typeof CreateStoreInputMembershipPlan[keyof typeof CreateStoreInputMembershipPlan];
+
+
+export const CreateStoreInputMembershipPlan = {
+  unpaid: 'unpaid',
+  monthly: 'monthly',
+  lifetime: 'lifetime',
+} as const;
+
+export interface CreateStoreInput {
+  name: string;
+  code: string;
+  address: string;
+  phone: string;
+  membershipPlan: CreateStoreInputMembershipPlan;
+  membershipExpiresAt?: string;
+  operatorName: string;
+  operatorEmail: string;
+  operatorPassword: string;
+}
+
+export type UpdateMembershipInputMembershipPlan = typeof UpdateMembershipInputMembershipPlan[keyof typeof UpdateMembershipInputMembershipPlan];
+
+
+export const UpdateMembershipInputMembershipPlan = {
+  unpaid: 'unpaid',
+  monthly: 'monthly',
+  lifetime: 'lifetime',
+} as const;
+
+export interface UpdateMembershipInput {
+  membershipPlan: UpdateMembershipInputMembershipPlan;
+  membershipExpiresAt?: string;
+}
+
+export interface CreateOperatorInput {
+  name: string;
+  email: string;
+  password: string;
 }
 
 export interface Customer {

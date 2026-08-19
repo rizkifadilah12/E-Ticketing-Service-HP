@@ -20,21 +20,28 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminStore,
+  CreateOperatorInput,
+  CreateStoreInput,
   Customer,
   CustomerInput,
   Dashboard,
   HealthStatus,
   ListTicketsParams,
+  LoginInput,
   Notification,
   Payment,
   PaymentInput,
   PublicTracking,
+  SessionUser,
   StatusUpdate,
   Store,
+  StoreOperator,
   Ticket,
   TicketDetail,
   TicketInput,
-  TicketUpdate
+  TicketUpdate,
+  UpdateMembershipInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -295,6 +302,517 @@ export function useListStores<TData = Awaited<ReturnType<typeof listStores>>, TE
 
 
 
+
+export const getLoginUrl = () => {
+
+
+
+
+  return `/api/auth/login`
+}
+
+/**
+ * @summary Sign in with email and password
+ */
+export const login = async (loginInput: LoginInput, options?: Parameters<typeof customFetch>[1]): Promise<SessionUser> => {
+
+  return customFetch<SessionUser>(getLoginUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(loginInput)
+  }
+);}
+
+
+
+
+
+export const getLoginMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginInput>}, TContext> => {
+
+const mutationKey = ['login'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, {data: BodyType<LoginInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  login(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>
+    export type LoginMutationBody = BodyType<LoginInput>
+    export type LoginMutationError = ErrorType<void>
+
+    /**
+ * @summary Sign in with email and password
+ */
+export const useLogin = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof login>>,
+        TError,
+        {data: BodyType<LoginInput>},
+        TContext
+      > => {
+      return useMutation(getLoginMutationOptions(options));
+    }
+
+export const getLogoutUrl = () => {
+
+
+
+
+  return `/api/auth/logout`
+}
+
+/**
+ * @summary Sign out and clear session cookie
+ */
+export const logout = async ( options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getLogoutUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getLogoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
+
+const mutationKey = ['logout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
+
+
+          return  logout(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
+
+    export type LogoutMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Sign out and clear session cookie
+ */
+export const useLogout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof logout>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getLogoutMutationOptions(options));
+    }
+
+export const getGetMeUrl = () => {
+
+
+
+
+  return `/api/auth/me`
+}
+
+/**
+ * @summary Current signed-in user
+ */
+export const getMe = async ( options?: Parameters<typeof customFetch>[1]): Promise<SessionUser> => {
+
+  return customFetch<SessionUser>(getGetMeUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMeQueryKey = () => {
+    return [
+    `/api/auth/me`
+    ] as const;
+    }
+
+
+export const getGetMeQueryOptions = <TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMeQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMe>>> = ({ signal }) => getMe({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMeQueryResult = NonNullable<Awaited<ReturnType<typeof getMe>>>
+export type GetMeQueryError = ErrorType<void>
+
+
+/**
+ * @summary Current signed-in user
+ */
+
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMeQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListAdminStoresUrl = () => {
+
+
+
+
+  return `/api/admin/stores`
+}
+
+/**
+ * @summary List all stores and membership status
+ */
+export const listAdminStores = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdminStore[]> => {
+
+  return customFetch<AdminStore[]>(getListAdminStoresUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdminStoresQueryKey = () => {
+    return [
+    `/api/admin/stores`
+    ] as const;
+    }
+
+
+export const getListAdminStoresQueryOptions = <TData = Awaited<ReturnType<typeof listAdminStores>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminStores>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdminStoresQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminStores>>> = ({ signal }) => listAdminStores({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdminStores>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdminStoresQueryResult = NonNullable<Awaited<ReturnType<typeof listAdminStores>>>
+export type ListAdminStoresQueryError = ErrorType<void>
+
+
+/**
+ * @summary List all stores and membership status
+ */
+
+export function useListAdminStores<TData = Awaited<ReturnType<typeof listAdminStores>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdminStores>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdminStoresQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAdminStoreUrl = () => {
+
+
+
+
+  return `/api/admin/stores`
+}
+
+/**
+ * @summary Create a store, membership, and first operator
+ */
+export const createAdminStore = async (createStoreInput: CreateStoreInput, options?: Parameters<typeof customFetch>[1]): Promise<AdminStore> => {
+
+  return customFetch<AdminStore>(getCreateAdminStoreUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createStoreInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAdminStoreMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminStore>>, TError,{data: BodyType<CreateStoreInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdminStore>>, TError,{data: BodyType<CreateStoreInput>}, TContext> => {
+
+const mutationKey = ['createAdminStore'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdminStore>>, {data: BodyType<CreateStoreInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAdminStore(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdminStoreMutationResult = NonNullable<Awaited<ReturnType<typeof createAdminStore>>>
+    export type CreateAdminStoreMutationBody = BodyType<CreateStoreInput>
+    export type CreateAdminStoreMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a store, membership, and first operator
+ */
+export const useCreateAdminStore = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdminStore>>, TError,{data: BodyType<CreateStoreInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdminStore>>,
+        TError,
+        {data: BodyType<CreateStoreInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAdminStoreMutationOptions(options));
+    }
+
+export const getUpdateStoreMembershipUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/stores/${id}/membership`
+}
+
+/**
+ * @summary Update store membership plan and payment status
+ */
+export const updateStoreMembership = async (id: string,
+    updateMembershipInput: UpdateMembershipInput, options?: Parameters<typeof customFetch>[1]): Promise<AdminStore> => {
+
+  return customFetch<AdminStore>(getUpdateStoreMembershipUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateMembershipInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateStoreMembershipMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStoreMembership>>, TError,{id: string;data: BodyType<UpdateMembershipInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateStoreMembership>>, TError,{id: string;data: BodyType<UpdateMembershipInput>}, TContext> => {
+
+const mutationKey = ['updateStoreMembership'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateStoreMembership>>, {id: string;data: BodyType<UpdateMembershipInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateStoreMembership(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateStoreMembershipMutationResult = NonNullable<Awaited<ReturnType<typeof updateStoreMembership>>>
+    export type UpdateStoreMembershipMutationBody = BodyType<UpdateMembershipInput>
+    export type UpdateStoreMembershipMutationError = ErrorType<void>
+
+    /**
+ * @summary Update store membership plan and payment status
+ */
+export const useUpdateStoreMembership = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateStoreMembership>>, TError,{id: string;data: BodyType<UpdateMembershipInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateStoreMembership>>,
+        TError,
+        {id: string;data: BodyType<UpdateMembershipInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateStoreMembershipMutationOptions(options));
+    }
+
+export const getCreateStoreOperatorUrl = (id: string,) => {
+
+
+
+
+  return `/api/admin/stores/${id}/operators`
+}
+
+/**
+ * @summary Add an operator login for a store
+ */
+export const createStoreOperator = async (id: string,
+    createOperatorInput: CreateOperatorInput, options?: Parameters<typeof customFetch>[1]): Promise<StoreOperator> => {
+
+  return customFetch<StoreOperator>(getCreateStoreOperatorUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createOperatorInput)
+  }
+);}
+
+
+
+
+
+export const getCreateStoreOperatorMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStoreOperator>>, TError,{id: string;data: BodyType<CreateOperatorInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStoreOperator>>, TError,{id: string;data: BodyType<CreateOperatorInput>}, TContext> => {
+
+const mutationKey = ['createStoreOperator'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStoreOperator>>, {id: string;data: BodyType<CreateOperatorInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createStoreOperator(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStoreOperatorMutationResult = NonNullable<Awaited<ReturnType<typeof createStoreOperator>>>
+    export type CreateStoreOperatorMutationBody = BodyType<CreateOperatorInput>
+    export type CreateStoreOperatorMutationError = ErrorType<void>
+
+    /**
+ * @summary Add an operator login for a store
+ */
+export const useCreateStoreOperator = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStoreOperator>>, TError,{id: string;data: BodyType<CreateOperatorInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createStoreOperator>>,
+        TError,
+        {id: string;data: BodyType<CreateOperatorInput>},
+        TContext
+      > => {
+      return useMutation(getCreateStoreOperatorMutationOptions(options));
+    }
 
 export const getListTicketsUrl = (params?: ListTicketsParams,) => {
   const normalizedParams = new URLSearchParams();

@@ -79,9 +79,169 @@ export const ListStoresResponseItem = zod.object({
   "code": zod.string(),
   "address": zod.string(),
   "phone": zod.string(),
-  "active": zod.boolean()
+  "active": zod.boolean(),
+  "membershipPlan": zod.enum(['unpaid', 'monthly', 'lifetime']),
+  "membershipExpiresAt": zod.string().nullable()
 })
 export const ListStoresResponse = zod.array(ListStoresResponseItem)
+
+
+/**
+ * @summary Sign in with email and password
+ */
+export const LoginBody = zod.object({
+  "email": zod.string(),
+  "password": zod.string()
+})
+
+export const LoginResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "role": zod.enum(['platform_admin', 'store_operator']),
+  "stores": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "code": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "active": zod.boolean(),
+  "membershipPlan": zod.enum(['unpaid', 'monthly', 'lifetime']),
+  "membershipExpiresAt": zod.string().nullable()
+}))
+})
+
+
+/**
+ * @summary Sign out and clear session cookie
+ */
+export const LogoutResponse = zod.void()
+
+
+/**
+ * @summary Current signed-in user
+ */
+export const GetMeResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "role": zod.enum(['platform_admin', 'store_operator']),
+  "stores": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "code": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "active": zod.boolean(),
+  "membershipPlan": zod.enum(['unpaid', 'monthly', 'lifetime']),
+  "membershipExpiresAt": zod.string().nullable()
+}))
+})
+
+
+/**
+ * @summary List all stores and membership status
+ */
+export const ListAdminStoresResponseItem = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "code": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "active": zod.boolean(),
+  "membershipPlan": zod.enum(['unpaid', 'monthly', 'lifetime']),
+  "membershipExpiresAt": zod.string().nullable()
+}).and(zod.object({
+  "operators": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string()
+}))
+}))
+export const ListAdminStoresResponse = zod.array(ListAdminStoresResponseItem)
+
+
+/**
+ * @summary Create a store, membership, and first operator
+ */
+export const CreateAdminStoreBody = zod.object({
+  "name": zod.string(),
+  "code": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "membershipPlan": zod.enum(['unpaid', 'monthly', 'lifetime']),
+  "membershipExpiresAt": zod.string().optional(),
+  "operatorName": zod.string(),
+  "operatorEmail": zod.string(),
+  "operatorPassword": zod.string()
+})
+
+export const CreateAdminStoreResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "code": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "active": zod.boolean(),
+  "membershipPlan": zod.enum(['unpaid', 'monthly', 'lifetime']),
+  "membershipExpiresAt": zod.string().nullable()
+}).and(zod.object({
+  "operators": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string()
+}))
+}))
+
+
+/**
+ * @summary Update store membership plan and payment status
+ */
+export const UpdateStoreMembershipParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateStoreMembershipBody = zod.object({
+  "membershipPlan": zod.enum(['unpaid', 'monthly', 'lifetime']),
+  "membershipExpiresAt": zod.string().optional()
+})
+
+export const UpdateStoreMembershipResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "code": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "active": zod.boolean(),
+  "membershipPlan": zod.enum(['unpaid', 'monthly', 'lifetime']),
+  "membershipExpiresAt": zod.string().nullable()
+}).and(zod.object({
+  "operators": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string()
+}))
+}))
+
+
+/**
+ * @summary Add an operator login for a store
+ */
+export const CreateStoreOperatorParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CreateStoreOperatorBody = zod.object({
+  "name": zod.string(),
+  "email": zod.string(),
+  "password": zod.string()
+})
+
+export const CreateStoreOperatorResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string()
+})
 
 
 /**

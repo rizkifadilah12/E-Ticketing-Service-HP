@@ -10,7 +10,10 @@ import NewTicketPage from '@/pages/new-ticket';
 import TicketDetailPage from '@/pages/ticket-detail';
 import CustomersPage from '@/pages/customers';
 import TrackingPage from '@/pages/track';
+import LoginPage from '@/pages/login';
+import AdminStoresPage from '@/pages/admin-stores';
 import { AppShell } from '@/components/layout';
+import { AuthGate } from '@/components/auth-gate';
 import {
   Route,
   Switch,
@@ -22,20 +25,26 @@ const queryClient = new QueryClient();
 
 function Router() {
   return (
-    // Keep a shared shell (sidebar, navbar) outside the boundary so it
-    // survives a page crash.
     <RoutedErrorBoundary>
-      <AppShell>
-        <Switch>
-          <Route path="/" component={DashboardPage} />
-          <Route path="/tickets/new" component={NewTicketPage} />
-          <Route path="/tickets/:id" component={TicketDetailPage} />
-          <Route path="/tickets" component={TicketsPage} />
-          <Route path="/customers" component={CustomersPage} />
-          <Route path="/track/:ticketNumber" component={TrackingPage} />
-          <Route component={NotFound} />
-        </Switch>
-      </AppShell>
+      <Switch>
+        <Route path="/login" component={LoginPage} />
+        <Route path="/track/:ticketNumber" component={TrackingPage} />
+        <Route>
+          <AuthGate>
+            <AppShell>
+              <Switch>
+                <Route path="/" component={DashboardPage} />
+                <Route path="/tickets/new" component={NewTicketPage} />
+                <Route path="/tickets/:id" component={TicketDetailPage} />
+                <Route path="/tickets" component={TicketsPage} />
+                <Route path="/customers" component={CustomersPage} />
+                <Route path="/admin/stores" component={AdminStoresPage} />
+                <Route component={NotFound} />
+              </Switch>
+            </AppShell>
+          </AuthGate>
+        </Route>
+      </Switch>
     </RoutedErrorBoundary>
   );
 }

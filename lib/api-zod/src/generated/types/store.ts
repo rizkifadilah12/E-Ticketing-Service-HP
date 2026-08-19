@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { StoreMembershipPlan } from './storeMembershipPlan';
 
 export interface Store {
   id: string;
@@ -13,4 +14,7 @@ export interface Store {
   address: string;
   phone: string;
   active: boolean;
+  membershipPlan: StoreMembershipPlan;
+  /** @nullable */
+  membershipExpiresAt: string | null;
 }

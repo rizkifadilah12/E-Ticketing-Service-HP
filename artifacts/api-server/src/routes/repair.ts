@@ -4,16 +4,29 @@ import {
   ListTicketsQueryParams, RecordPaymentBody, RecordPaymentParams, RetryNotificationParams,
   UpdateTicketBody, UpdateTicketParams, UpdateTicketStatusBody, UpdateTicketStatusParams,
 } from "@workspace/api-zod";
-import { customers, detail, findTicket, stores, summarizeTicket, technicians, tickets, type RepairTicket } from "./repair-store";
+import { customers, detail, findTicket, summarizeTicket, technicians, tickets, type RepairTicket } from "./repair-store";
+import { requireAuth, resolveStore } from "../lib/auth";
 
 const router: IRouter = Router();
 const ticketResponse = (ticket: RepairTicket) => detail(ticket);
-const activeStore = (req: { headers: Record<string, string | string[] | undefined> }) =>
-  typeof req.headers["x-store-id"] === "string" ? req.headers["x-store-id"] : "store-central";
-const scopedTickets = (req: { headers: Record<string, string | string[] | undefined> }) =>
+const activeStore = (req: { storeId?: string }) => req.storeId ?? "store-central";
+const scopedTickets = (req: { storeId?: string }) =>
   tickets.filter((ticket) => ticket.storeId === activeStore(req));
 
-router.get("/stores", (_req, res) => res.json(stores));
+router.get("/public/track/:ticketNumber", (req, res) => {
+  const params = GetPublicTrackingParams.parse(req.params);
+  const ticket = findTicket(params.ticketNumber);
+  if (!ticket) return res.status(404).json({ error: "Ticket not found" });
+  const firstName = ticket.customerName.split(" ")[0];
+  return res.json({
+    ticketNumber: ticket.ticketNumber, customerName: `${firstName} ${ticket.customerName.split(" ").slice(1).map((part) => `${part[0]}.`).join(" ")}`,
+    deviceBrand: ticket.deviceBrand, deviceModel: ticket.deviceModel, complaint: ticket.complaint, status: ticket.status,
+    history: ticket.history, estimatedCompletion: ticket.estimatedCompletion, delayReason: ticket.delayReason ?? null,
+    pickupInfo: ticket.status === "READY_PICKUP" ? "Device is ready. Please bring your ticket number when collecting." : null,
+  });
+});
+
+router.use(requireAuth, resolveStore);
 
 router.get("/dashboard", (req, res) => {
   const scoped = scopedTickets(req);
@@ -136,19 +149,6 @@ router.post("/customers", (req, res) => {
   const customer = { id: `cus-${Date.now()}`, storeId: activeStore(req), ...body };
   customers.unshift(customer);
   res.status(201).json({ ...customer, totalTickets: 0, activeTickets: 0 });
-});
-
-router.get("/public/track/:ticketNumber", (req, res) => {
-  const params = GetPublicTrackingParams.parse(req.params);
-  const ticket = findTicket(params.ticketNumber, activeStore(req));
-  if (!ticket) return res.status(404).json({ error: "Ticket not found" });
-  const firstName = ticket.customerName.split(" ")[0];
-  return res.json({
-    ticketNumber: ticket.ticketNumber, customerName: `${firstName} ${ticket.customerName.split(" ").slice(1).map((part) => `${part[0]}.`).join(" ")}`,
-    deviceBrand: ticket.deviceBrand, deviceModel: ticket.deviceModel, complaint: ticket.complaint, status: ticket.status,
-    history: ticket.history, estimatedCompletion: ticket.estimatedCompletion, delayReason: ticket.delayReason ?? null,
-    pickupInfo: ticket.status === "READY_PICKUP" ? "Device is ready. Please bring your ticket number when collecting." : null,
-  });
 });
 
 export default router;

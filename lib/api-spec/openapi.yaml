@@ -15,6 +15,8 @@ tags:
   - name: customers
   - name: public
   - name: stores
+  - name: auth
+  - name: admin
 paths:
   /healthz:
     get:
@@ -54,6 +56,111 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/Store" }
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginInput" }
+      responses:
+        "200":
+          description: Signed-in user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionUser" }
+        "401": { description: Invalid credentials }
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Sign out and clear session cookie
+      responses:
+        "204": { description: Signed out }
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Current signed-in user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionUser" }
+        "401": { description: Not signed in }
+  /admin/stores:
+    get:
+      operationId: listAdminStores
+      tags: [admin]
+      summary: List all stores and membership status
+      responses:
+        "200":
+          description: Admin store list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AdminStore" }
+        "403": { description: Admin only }
+    post:
+      operationId: createAdminStore
+      tags: [admin]
+      summary: Create a store, membership, and first operator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateStoreInput" }
+      responses:
+        "201":
+          description: Created store
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminStore" }
+        "409": { description: Store code or operator email already exists }
+  /admin/stores/{id}/membership:
+    patch:
+      operationId: updateStoreMembership
+      tags: [admin]
+      summary: Update store membership plan and payment status
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateMembershipInput" }
+      responses:
+        "200":
+          description: Updated store
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminStore" }
+        "404": { description: Store not found }
+  /admin/stores/{id}/operators:
+    post:
+      operationId: createStoreOperator
+      tags: [admin]
+      summary: Add an operator login for a store
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateOperatorInput" }
+      responses:
+        "201":
+          description: Created operator
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StoreOperator" }
+        "404": { description: Store not found }
+        "409": { description: Email already exists }
   /tickets:
     get:
       operationId: listTickets
@@ -235,7 +342,7 @@ components:
         statusCounts: { type: object, additionalProperties: { type: number } }
     Store:
       type: object
-      required: [id, name, code, address, phone, active]
+      required: [id, name, code, address, phone, active, membershipPlan, membershipExpiresAt]
       properties:
         id: { type: string }
         name: { type: string }
@@ -243,6 +350,67 @@ components:
         address: { type: string }
         phone: { type: string }
         active: { type: boolean }
+        membershipPlan: { type: string, enum: [unpaid, monthly, lifetime] }
+        membershipExpiresAt: { type: ["string", "null"] }
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string }
+        password: { type: string }
+    SessionUser:
+      type: object
+      required: [id, name, email, role, stores]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [platform_admin, store_operator] }
+        stores:
+          type: array
+          items: { $ref: "#/components/schemas/Store" }
+    StoreOperator:
+      type: object
+      required: [id, name, email]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+    AdminStore:
+      allOf:
+        - $ref: "#/components/schemas/Store"
+        - type: object
+          required: [operators]
+          properties:
+            operators:
+              type: array
+              items: { $ref: "#/components/schemas/StoreOperator" }
+    CreateStoreInput:
+      type: object
+      required: [name, code, address, phone, membershipPlan, operatorName, operatorEmail, operatorPassword]
+      properties:
+        name: { type: string }
+        code: { type: string }
+        address: { type: string }
+        phone: { type: string }
+        membershipPlan: { type: string, enum: [unpaid, monthly, lifetime] }
+        membershipExpiresAt: { type: string }
+        operatorName: { type: string }
+        operatorEmail: { type: string }
+        operatorPassword: { type: string }
+    UpdateMembershipInput:
+      type: object
+      required: [membershipPlan]
+      properties:
+        membershipPlan: { type: string, enum: [unpaid, monthly, lifetime] }
+        membershipExpiresAt: { type: string }
+    CreateOperatorInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string }
+        email: { type: string }
+        password: { type: string }
     Customer:
       type: object
       required: [id, name, whatsapp, totalTickets, activeTickets]
